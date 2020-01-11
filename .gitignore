@@ -1,0 +1,4 @@
+.idea
+schedule-app/venv
+schedule-app/__pycache__
+schedule-app/app/__pycache__

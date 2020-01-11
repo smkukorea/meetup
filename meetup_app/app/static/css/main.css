@@ -1,0 +1,537 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:300,400|Roboto&display=swap');
+html {
+    font-family: 'Roboto', sans-serif;
+    min-height:100vh;
+    min-width:100%;
+    overflow-x:hidden;
+}
+body {
+    min-height:100vh;
+    min-width:100%;
+    display:flex;
+    align-items:center;
+    flex-direction:column;
+}
+body > header, body > footer, body > main {
+    display:flex;
+    align-items:center;
+    width:100%;
+    padding:15px 0;
+}
+footer {
+    font-size: 15pt;
+    color:white;
+    background:#222c61;
+}
+.body {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:stretch;
+    padding:0 !important;
+    flex:1;
+    background:#F0F0F0;
+}
+.logo {
+    display:flex;
+    justify-content:center;
+    font-family: 'Montserrat';
+    font-weight: lighter;
+    font-size: 50pt;
+    color:#E04E39;
+}
+.hf {
+    justify-content:space-between;
+    flex-direction:row;
+}
+.hf > div {
+    display:flex;
+    justify-content:center;
+    width:33%;
+}
+.left {
+    padding:0 0 0 20px;
+    justify-content:flex-start !important;
+}
+.right {
+    padding:0 20px 0 0;
+    justify-content:flex-end !important;
+}
+.page {
+    width:100%;
+    display:flex;
+    flex-direction:row;
+    flex-grow:1;
+    align-items:center;
+    justify-content:center;
+}
+#editEventSchedulePage, #psPage {
+    flex-direction:column;
+}
+#viewEventPage {
+    align-items:stretch !important;
+}
+.page > .col {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    width:50%;
+}
+.col.br {
+    border-right:solid #ccc 1px;
+}
+.col.lb {
+    background:#fbfbfb;
+    overflow-x:scroll;
+}
+#showTimes {
+	border-collapse: collapse;
+    display:block;
+    max-width:100% !important;
+}
+#showTimes td {
+    text-align:center;
+    min-width:120px;
+}
+#showTimes td.day {
+    font-size:20px;
+    padding-bottom:5px;
+}
+.page.hidden {
+    display:none;
+}
+.bodyFlash {
+    width:100%;
+    height:auto;
+}
+.bodyFlash > div {
+    padding:15px;
+    text-align:center;
+}
+#bodyError {
+    background:#E04E39;
+}
+#bodyError > div {
+    color:white;
+}
+#bodyFlash {
+    background:#39E04E;
+}
+#bodyFlash > div {
+    color:#454545;
+}
+.eventUI {
+    display:flex;
+    align-items:center;
+    flex-direction:column;
+    font-size:18pt;
+    width:500px;
+}
+.eventUI input {
+    background:none;
+    border:none;
+    text-align:center;
+	border-bottom: 1px solid gray;
+}
+.eventUI .line {
+	display:flex;
+    align-items:center;
+	justify-content:space-around;
+    border:0;
+    margin-bottom:20px;
+    width:420px;
+}
+.eventUI button {
+    width:50%;
+}
+.line.border {
+	border-bottom: 1px solid gray !important;
+}
+.line.border > input {
+    flex-grow:1;
+    max-width:50%;
+    border:none !important;
+}
+.timepicker {
+    width:33%;
+}
+.pika-single {
+    width:258px !important;
+}
+.abs {
+    position:absolute !important;
+}
+
+.sidebar {
+    display:none;
+    flex-direction:column;
+    position:absolute;
+    top:0;
+    right:0;
+    height:100vh !important;
+    width:400px;
+    background:white;
+    box-shadow:0 0 8px 0px #B3B3B3;
+    overflow-y:scroll;
+}
+.sidebar.open {
+    display:flex !important;
+}
+.sidebar > .close {
+    position:absolute;
+    top:31px;
+    right:31px;
+}
+.sidebarContent {
+    width:90%;
+    display:flex;
+    flex-direction:column;
+    padding:13px 5%;
+    flex-grow:1;
+}
+.sidebarContent .account {
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    height:80px;
+}
+.sidebarContent .account .uname {
+    flex-grow:1;
+    padding:0 15px;
+}
+.sidebarContent h3 {
+    font-weight:normal;
+    text-align:center;
+}
+#pwReset {
+    text-align: center;
+}
+.sl {
+    margin:10px 2em;
+    text-decoration:none;
+    font-weight:bolder;
+    color:#656565;
+}
+.sl:hover {
+    cursor:pointer;
+    color:#454545;
+}
+.sidebarContent h2 {
+    font-family:'Montserrat';
+    font-size:32px;
+}
+.sidebarContent h4 {
+    font-family:'Montserrat';
+    text-align:center;
+    font-size:20px;
+}
+form {
+    text-align:center;
+}
+.line {
+	display:flex;
+    align-items:center;
+	justify-content:space-between;
+	margin:5px 0;
+    border:0;
+	border-bottom: 1px solid gray;
+}
+label {
+	width:25%;
+	display:inline-block;
+    text-align:left;
+}
+label[for='remember'] {
+    width:90%;
+}
+input {
+	width:75%;
+    background:none;
+	text-align:right;
+	padding:3px;
+    border:0;
+}
+.check {
+    width:25px;
+    margin-bottom:25px;
+}
+.sidebarError {
+    background:#E04E39;
+    width:100%;
+    height:auto;
+}
+.sidebarError > div {
+    color:white;
+    padding:15px;
+    text-align:center;
+}
+.sidebarFlash {
+    background:#39E04E;
+    width:100%;
+    height:auto;
+}
+.sidebarFlash > div {
+    color:#454545;
+    padding:15px;
+    text-align:center;
+}
+.sidebarContent .g-recaptcha {
+    width:100%;
+}
+.sidebarContent .g-recaptcha > div {
+    width:100%;
+}
+
+
+.check {
+    width:10%;
+    display:block;
+    position:relative;
+    padding-left:0;
+    cursor:pointer;
+    font-size:22px;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none;
+}
+.check input {
+    position:absolute;
+    opacity:0;
+    cursor:pointer;
+    height:0;
+    width:0;
+}
+.checkmark {
+    position:absolute;
+    top:0;
+    left:0;
+    height:25px;
+    width:25px;
+    background-color:#eee;
+}
+.check:hover input ~ .checkmark {
+    background-color:#bbb;
+}
+.check input:checked ~ .checkmark {
+    background-color:black;
+}
+.checkmark:after {
+    content:'';
+    position:absolute;
+    display:none;
+}
+.check input:checked ~ .checkmark:after {
+    display:block;
+}
+.check .checkmark:after {
+    left:9px;
+    top:5px;
+    width:5px;
+    height:10px;
+    border:solid white;
+    border-width:0 3px 3px 0;
+    -webkit-transform:rotate(45deg);
+    -ms-transform:rotate(45deg);
+    transform:rotate(45deg);
+}
+/*
+    Button graphics adapted from Emanuel Gonçalves' (https://emanuelgsouza.dev/) work at https://codepen.io/emanuelgsouza/pen/YVJOZo. https://emanuelgsouza.dev/
+ */
+.button {
+    position:relative;
+    padding:1em 1.5em;
+    border:none;
+    background-color:transparent;
+    cursor:pointer;
+    outline:none;
+    text-decoration:none;
+    color:black;
+    font-size:18px;
+    margin:1em 0.8em;
+    width:80%;
+}
+.button:after, .button:before {
+    content:'';
+    display:block;
+    position:absolute;
+    top:100%;
+    left:0;
+    width:100%;
+    height:1px;
+    background-color:black;
+    transition:all 0.3s ease;
+    transform:scale(0.85);
+}
+.button:hover:before {
+    top:0;
+    transform:scale(1);
+}
+.button:hover:after {
+    transform:scale(1);
+}
+.faButton {
+    font-size:27pt;
+    color:#999;
+    cursor:pointer;
+}
+.tableContainer {
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:row;
+    font-size:20px;
+    font-weight:normal;
+    overflow-x:scroll;
+}
+.tableContainer .dayCol {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-width:120px;
+    margin:0 5px;
+    flex-grow:1;
+}
+.tableContainer .dayCol .dayTitle{
+    margin:5px;
+    font-size:24px;
+}
+.tableContainer .dayCol .timeRow {
+    width:100%;
+    text-align:center;
+    margin:2px 0;
+    padding:2px;
+}
+.tableContainer .dayCol .timeRow:hover {
+    cursor:pointer;
+}
+.tableContainer .dayCol .timeRow.selected {
+    color:white;
+}
+
+.not-selected {
+	width: 100px;
+	background-color:white;
+}
+
+.not-selected:hover {
+	background-color:#f0f0f0;
+}
+
+.selected {
+	width: 100px;
+	background:#4285f4;
+}
+.selected:hover {
+    background:#3376E5
+}
+
+.time {
+	width: 60px;
+}
+
+.days {
+
+}
+
+.day {
+	width: 50px;
+}
+tr {
+	width: 200px;
+}
+
+td {
+	height: 25px;
+}
+.mdp table.ui-datepicker-calendar {
+    table-layout:fixed!important;
+}
+.mdp td {
+    border:none!important;
+}
+.mdp td > a {
+    border:none!important;
+}
+
+.mdp > .ui-widget-content {
+    border:none !important;
+    background:none !important;
+}
+
+.mdp .ui-widget-header {
+    border:none !important;
+    background:none !important;
+}
+
+.mdp .ui-state-highlight {
+}
+
+.mdp .ui-state-highlight a {
+    background:#4285f4 none !important;
+    color:white !important;
+}
+
+.mdp a.ui-state-active {
+    border:none!important;
+    color:#454545;
+}
+
+.mdp a.ui-state-default {
+    background:#fff;
+}
+
+.mdp .ui-widget {
+    font-family:'Roboto' !important;
+    font-weight:normal !important;
+}
+
+.mdp .ui-widget-header {
+    font-weight:normal!important;
+}
+
+.mdp .ui-datepicker th {
+    padding:0 .3em .3em !important;
+    font-weight:normal!important;
+}
+
+.mdp td.ui-state-highlight {
+    background:white;
+}
+.mdp a.ui-state-highlight {
+    color:#454545;
+}
+.mdp .ui-datepicker-header > a {
+    cursor:pointer;
+}
+.mdp .ui-datepicker-header > a.ui-state-hover {
+    border:none!important;
+}
+.mdp .ui-datepicker-header > a.ui-state-hover {
+    background:none!important;
+}
+.mdp .ui-datepicker-header > a.ui-datepicker-next-hover {
+    right:2px!important;
+    top:2px!important;
+}
+.mdp .ui-datepicker-header > a.ui-datepicker-prev-hover {
+    left:2px!important;
+    top:2px!important;
+}
+
+@media only screen and (orientation:portrait) {
+    #viewEventPage {
+        flex-direction:column;
+    }
+    #viewEventPage .col {
+        padding:20px;
+        width:100%;
+    }
+}
+
+@media only screen and (max-width:401px) {
+    .sidebar.open {
+        width:100%;
+    }
+}

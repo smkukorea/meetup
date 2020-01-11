@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'includes/head.html' %}
+	<title>MeetUp</title>
+	<meta name='description' content='TODO: write descriptions'>
+</head>
+<body>
+    {% include 'includes/header.html' %}
+    <main class='body' data-currentPage='{{ startPage }}'>
+        <div id='bodyFlash' class='bodyFlash'>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages%}
+                        {% if message|first == '|' %}
+                            <div>{{ message|replace('|', '') }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        <div id='bodyError' class='bodyFlash'>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages%}
+                        {% if message|first == '-' %}
+                            <div>{{ message|replace('-', '') }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        <div id='createEventPage' class='page hidden'>
+            <form class='eventUI' name='event' method='POST' action='{{ url_for("createEvent") }}'>
+                {{ eform.hidden_tag() }}
+                <div class='line'>
+                    {{ eform.eventName(placeholder=eventPlaceholder) }}
+                </div>
+                <div class='line'>
+                    {{ eform.dates() }}
+                    <div class='mdp active' id='mdp'></div>
+                </div>
+                <div class='line border'>
+                    {{ eform.startTime() }}—{{ eform.endTime(minTime='') }}
+                </div>
+                <button type='submit' class='button'>Create Event</button>
+            </form>
+        </div>
+        <div id='viewEventPage' class='page hidden'>
+            <div class='col br'>
+                <div class='eventUI'>
+                    <input type='hidden' id='eventDates' value='{{ event.dates }}'>
+                    <div class='line'>
+                        {{ event.name }}
+                    </div>
+                    <div class='mdp inactive'></div>
+                    <div class='line border nb'>
+                        {{ event.start }}—{{ event.end }}
+                    </div>
+                    <a class='pageTurn button' data-target='invitePage'>Invite Members</a>
+                    <a class='pageTurn button' data-target='editEventSchedulePage'>Edit your Schedule</a>
+                </div>
+            </div>
+            <div class='col lb'>
+                <table id='showTimes'>
+                    <thead>
+                        <tr class="days">
+                            {% for i in range(schedule.days| length) %}
+                                <td class="day">{{ schedule.days[i] }} {{ schedule.dates[i] }}</td>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for time in schedule.times %}
+                            <tr>
+                                {% for date in schedule.dates %}
+                                    <td style="background-color: {{ event.overlap_colors[ date ~ ' ' ~ time] }}">{{ time }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id='invitePage' class='page hidden'>
+            <form method='POST' action='{{ '/invite/'+event.event_id|string }}'>
+                {{ iform.hidden_tag() }}
+                <div class='line'>{{ iform.email.label }}{{ iform.email() }}</div><br>
+                <button class='button fSubmit'>Invite to Event</button>
+            </form>
+        </div>
+        <div id='editEventSchedulePage' class='page hidden'>
+			{% if event %}
+                <div id='eventScheduleSelect' class='tableContainer select-times'>
+                    {% for date in schedule.dates %}
+                        <div class='dayCol'>
+                            <div class='dayTitle'>{{ schedule.days[i] }}{{ date }}</div>
+                            {% for time in schedule.times %}
+                                <div id='{{ date ~ " " ~ time }}' class='timeRow selected'>{{ time }}</div>
+                            {% endfor %}
+                        </div>
+    {#                    <td class="day">{{ schedule.days[i] }} {{ schedule.dates[i] }}</td>#}
+                    {% endfor %}
+                </div>
+                <form id='eSchedule' name='schedule' method='POST' action='{{ url_for("setSchedule", eventId=event.event_id) }}'>
+                    {{ aform.hidden_tag() }}
+                    {% if current_user.is_authenticated %}
+                        {{ aform.user_name(type='hidden', value=current_user.username) }}
+                        {% if current_user.personal_schedule %}
+                            <a class='button' href="{{ url_for('loadSchedule', eventId=event.event_id) }}">Load Personal Schedule</a>
+                        {% endif %}
+                    {% else %}
+                        <div class='line'>{{ aform.user_name.label }}{{ aform.user_name() }}</div><br>
+                    {% endif %}
+                    <button data-form='eSchedule' data-input='availability' data-target='eventScheduleSelect' type='submit' class='eSubmit button'>Set Schedule</button>
+                </form>
+			{% endif %}
+        </div>
+        <div id='psPage' class='page hidden'>
+            <div id='personalScheduleSelect' class='tableContainer select-times'>
+                <div class='dayCol'>
+                    <div class='dayTitle'>Sun</div>
+                    <div id='Sunday 12:00 AM' class='timeRow selected'>12:00 AM</div>
+                    <div id='Sunday 12:15 AM' class='timeRow selected'>12:15 AM</div>
+                    <div id='Sunday 12:30 AM' class='timeRow selected'>12:30 AM</div>
+                    <div id='Sunday 12:45 AM' class='timeRow selected'>12:45 AM</div>
+                    <div id='Sunday 01:00 AM' class='timeRow selected'>01:00 AM</div>
+                    <div id='Sunday 01:15 AM' class='timeRow selected'>01:15 AM</div>
+                    <div id='Sunday 01:30 AM' class='timeRow selected'>01:30 AM</div>
+                    <div id='Sunday 01:45 AM' class='timeRow selected'>01:45 AM</div>
+                    <div id='Sunday 02:00 AM' class='timeRow selected'>02:00 AM</div>
+                    <div id='Sunday 02:15 AM' class='timeRow selected'>02:15 AM</div>
+                    <div id='Sunday 02:30 AM' class='timeRow selected'>02:30 AM</div>
+                    <div id='Sunday 02:45 AM' class='timeRow selected'>02:45 AM</div>
+                    <div id='Sunday 03:00 AM' class='timeRow selected'>03:00 AM</div>
+                    <div id='Sunday 03:15 AM' class='timeRow selected'>03:15 AM</div>
+                    <div id='Sunday 03:30 AM' class='timeRow selected'>03:30 AM</div>
+                    <div id='Sunday 03:45 AM' class='timeRow selected'>03:45 AM</div>
+                    <div id='Sunday 04:00 AM' class='timeRow selected'>04:00 AM</div>
+                    <div id='Sunday 04:15 AM' class='timeRow selected'>04:15 AM</div>
+                    <div id='Sunday 04:30 AM' class='timeRow selected'>04:30 AM</div>
+                    <div id='Sunday 04:45 AM' class='timeRow selected'>04:45 AM</div>
+                    <div id='Sunday 05:00 AM' class='timeRow selected'>05:00 AM</div>
+                    <div id='Sunday 05:15 AM' class='timeRow selected'>05:15 AM</div>
+                    <div id='Sunday 05:30 AM' class='timeRow selected'>05:30 AM</div>
+                    <div id='Sunday 05:45 AM' class='timeRow selected'>05:45 AM</div>
+                    <div id='Sunday 06:00 AM' class='timeRow selected'>06:00 AM</div>
+                    <div id='Sunday 06:15 AM' class='timeRow selected'>06:15 AM</div>
+                    <div id='Sunday 06:30 AM' class='timeRow selected'>06:30 AM</div>
+                    <div id='Sunday 06:45 AM' class='timeRow selected'>06:45 AM</div>
+                    <div id='Sunday 07:00 AM' class='timeRow selected'>07:00 AM</div>
+                    <div id='Sunday 07:15 AM' class='timeRow selected'>07:15 AM</div>
+                    <div id='Sunday 07:30 AM' class='timeRow selected'>07:30 AM</div>
+                    <div id='Sunday 07:45 AM' class='timeRow selected'>07:45 AM</div>
+                    <div id='Sunday 08:00 AM' class='timeRow selected'>08:00 AM</div>
+                    <div id='Sunday 08:15 AM' class='timeRow selected'>08:15 AM</div>
+                    <div id='Sunday 08:30 AM' class='timeRow selected'>08:30 AM</div>
+                    <div id='Sunday 08:45 AM' class='timeRow selected'>08:45 AM</div>
+                    <div id='Sunday 09:00 AM' class='timeRow selected'>09:00 AM</div>
+                    <div id='Sunday 09:15 AM' class='timeRow selected'>09:15 AM</div>
+                    <div id='Sunday 09:30 AM' class='timeRow selected'>09:30 AM</div>
+                    <div id='Sunday 09:45 AM' class='timeRow selected'>09:45 AM</div>
+                    <div id='Sunday 10:00 AM' class='timeRow selected'>10:00 AM</div>
+                    <div id='Sunday 10:15 AM' class='timeRow selected'>10:15 AM</div>
+                    <div id='Sunday 10:30 AM' class='timeRow selected'>10:30 AM</div>
+                    <div id='Sunday 10:45 AM' class='timeRow selected'>10:45 AM</div>
+                    <div id='Sunday 11:00 AM' class='timeRow selected'>11:00 AM</div>
+                    <div id='Sunday 11:15 AM' class='timeRow selected'>11:15 AM</div>
+                    <div id='Sunday 11:30 AM' class='timeRow selected'>11:30 AM</div>
+                    <div id='Sunday 11:45 AM' class='timeRow selected'>11:45 AM</div>
+                    <div id='Sunday 12:00 PM' class='timeRow selected'>12:00 PM</div>
+                    <div id='Sunday 12:15 PM' class='timeRow selected'>12:15 PM</div>
+                    <div id='Sunday 12:30 PM' class='timeRow selected'>12:30 PM</div>
+                    <div id='Sunday 12:45 PM' class='timeRow selected'>12:45 PM</div>
+                    <div id='Sunday 01:00 PM' class='timeRow selected'>01:00 PM</div>
+                    <div id='Sunday 01:15 PM' class='timeRow selected'>01:15 PM</div>
+                    <div id='Sunday 01:30 PM' class='timeRow selected'>01:30 PM</div>
+                    <div id='Sunday 01:45 PM' class='timeRow selected'>01:45 PM</div>
+                    <div id='Sunday 02:00 PM' class='timeRow selected'>02:00 PM</div>
+                    <div id='Sunday 02:15 PM' class='timeRow selected'>02:15 PM</div>
+                    <div id='Sunday 02:30 PM' class='timeRow selected'>02:30 PM</div>
+                    <div id='Sunday 02:45 PM' class='timeRow selected'>02:45 PM</div>
+                    <div id='Sunday 03:00 PM' class='timeRow selected'>03:00 PM</div>
+                    <div id='Sunday 03:15 PM' class='timeRow selected'>03:15 PM</div>
+                    <div id='Sunday 03:30 PM' class='timeRow selected'>03:30 PM</div>
+                    <div id='Sunday 03:45 PM' class='timeRow selected'>03:45 PM</div>
+                    <div id='Sunday 04:00 PM' class='timeRow selected'>04:00 PM</div>
+                    <div id='Sunday 04:15 PM' class='timeRow selected'>04:15 PM</div>
+                    <div id='Sunday 04:30 PM' class='timeRow selected'>04:30 PM</div>
+                    <div id='Sunday 04:45 PM' class='timeRow selected'>04:45 PM</div>
+                    <div id='Sunday 05:00 PM' class='timeRow selected'>05:00 PM</div>
+                    <div id='Sunday 05:15 PM' class='timeRow selected'>05:15 PM</div>
+                    <div id='Sunday 05:30 PM' class='timeRow selected'>05:30 PM</div>
+                    <div id='Sunday 05:45 PM' class='timeRow selected'>05:45 PM</div>
+                    <div id='Sunday 06:00 PM' class='timeRow selected'>06:00 PM</div>
+                    <div id='Sunday 06:15 PM' class='timeRow selected'>06:15 PM</div>
+                    <div id='Sunday 06:30 PM' class='timeRow selected'>06:30 PM</div>
+                    <div id='Sunday 06:45 PM' class='timeRow selected'>06:45 PM</div>
+                    <div id='Sunday 07:00 PM' class='timeRow selected'>07:00 PM</div>
+                    <div id='Sunday 07:15 PM' class='timeRow selected'>07:15 PM</div>
+                    <div id='Sunday 07:30 PM' class='timeRow selected'>07:30 PM</div>
+                    <div id='Sunday 07:45 PM' class='timeRow selected'>07:45 PM</div>
+                    <div id='Sunday 08:00 PM' class='timeRow selected'>08:00 PM</div>
+                    <div id='Sunday 08:15 PM' class='timeRow selected'>08:15 PM</div>
+                    <div id='Sunday 08:30 PM' class='timeRow selected'>08:30 PM</div>
+                    <div id='Sunday 08:45 PM' class='timeRow selected'>08:45 PM</div>
+                    <div id='Sunday 09:00 PM' class='timeRow selected'>09:00 PM</div>
+                    <div id='Sunday 09:15 PM' class='timeRow selected'>09:15 PM</div>
+                    <div id='Sunday 09:30 PM' class='timeRow selected'>09:30 PM</div>
+                    <div id='Sunday 09:45 PM' class='timeRow selected'>09:45 PM</div>
+                    <div id='Sunday 10:00 PM' class='timeRow selected'>10:00 PM</div>
+                    <div id='Sunday 10:15 PM' class='timeRow selected'>10:15 PM</div>
+                    <div id='Sunday 10:30 PM' class='timeRow selected'>10:30 PM</div>
+                    <div id='Sunday 10:45 PM' class='timeRow selected'>10:45 PM</div>
+                    <div id='Sunday 11:00 PM' class='timeRow selected'>11:00 PM</div>
+                    <div id='Sunday 11:15 PM' class='timeRow selected'>11:15 PM</div>
+                    <div id='Sunday 11:30 PM' class='timeRow selected'>11:30 PM</div>
+                </div>
+                <div class='dayCol'>
+                    <div class='dayTitle'>Mon</div>
+                    <div id='Monday 12:00 AM' class='timeRow selected'>12:00 AM</div>
+                    <div id='Monday 12:15 AM' class='timeRow selected'>12:15 AM</div>
+                    <div id='Monday 12:30 AM' class='timeRow selected'>12:30 AM</div>
+                    <div id='Monday 12:45 AM' class='timeRow selected'>12:45 AM</div>
+                    <div id='Monday 01:00 AM' class='timeRow selected'>01:00 AM</div>
+                    <div id='Monday 01:15 AM' class='timeRow selected'>01:15 AM</div>
+                    <div id='Monday 01:30 AM' class='timeRow selected'>01:30 AM</div>
+                    <div id='Monday 01:45 AM' class='timeRow selected'>01:45 AM</div>
+                    <div id='Monday 02:00 AM' class='timeRow selected'>02:00 AM</div>
+                    <div id='Monday 02:15 AM' class='timeRow selected'>02:15 AM</div>
+                    <div id='Monday 02:30 AM' class='timeRow selected'>02:30 AM</div>
+                    <div id='Monday 02:45 AM' class='timeRow selected'>02:45 AM</div>
+                    <div id='Monday 03:00 AM' class='timeRow selected'>03:00 AM</div>
+                    <div id='Monday 03:15 AM' class='timeRow selected'>03:15 AM</div>
+                    <div id='Monday 03:30 AM' class='timeRow selected'>03:30 AM</div>
+                    <div id='Monday 03:45 AM' class='timeRow selected'>03:45 AM</div>
+                    <div id='Monday 04:00 AM' class='timeRow selected'>04:00 AM</div>
+                    <div id='Monday 04:15 AM' class='timeRow selected'>04:15 AM</div>
+                    <div id='Monday 04:30 AM' class='timeRow selected'>04:30 AM</div>
+                    <div id='Monday 04:45 AM' class='timeRow selected'>04:45 AM</div>
+                    <div id='Monday 05:00 AM' class='timeRow selected'>05:00 AM</div>
+                    <div id='Monday 05:15 AM' class='timeRow selected'>05:15 AM</div>
+                    <div id='Monday 05:30 AM' class='timeRow selected'>05:30 AM</div>
+                    <div id='Monday 05:45 AM' class='timeRow selected'>05:45 AM</div>
+                    <div id='Monday 06:00 AM' class='timeRow selected'>06:00 AM</div>
+                    <div id='Monday 06:15 AM' class='timeRow selected'>06:15 AM</div>
+                    <div id='Monday 06:30 AM' class='timeRow selected'>06:30 AM</div>
+                    <div id='Monday 06:45 AM' class='timeRow selected'>06:45 AM</div>
+                    <div id='Monday 07:00 AM' class='timeRow selected'>07:00 AM</div>
+                    <div id='Monday 07:15 AM' class='timeRow selected'>07:15 AM</div>
+                    <div id='Monday 07:30 AM' class='timeRow selected'>07:30 AM</div>
+                    <div id='Monday 07:45 AM' class='timeRow selected'>07:45 AM</div>
+                    <div id='Monday 08:00 AM' class='timeRow selected'>08:00 AM</div>
+                    <div id='Monday 08:15 AM' class='timeRow selected'>08:15 AM</div>
+                    <div id='Monday 08:30 AM' class='timeRow selected'>08:30 AM</div>
+                    <div id='Monday 08:45 AM' class='timeRow selected'>08:45 AM</div>
+                    <div id='Monday 09:00 AM' class='timeRow selected'>09:00 AM</div>
+                    <div id='Monday 09:15 AM' class='timeRow selected'>09:15 AM</div>
+                    <div id='Monday 09:30 AM' class='timeRow selected'>09:30 AM</div>
+                    <div id='Monday 09:45 AM' class='timeRow selected'>09:45 AM</div>
+                    <div id='Monday 10:00 AM' class='timeRow selected'>10:00 AM</div>
+                    <div id='Monday 10:15 AM' class='timeRow selected'>10:15 AM</div>
+                    <div id='Monday 10:30 AM' class='timeRow selected'>10:30 AM</div>
+                    <div id='Monday 10:45 AM' class='timeRow selected'>10:45 AM</div>
+                    <div id='Monday 11:00 AM' class='timeRow selected'>11:00 AM</div>
+                    <div id='Monday 11:15 AM' class='timeRow selected'>11:15 AM</div>
+                    <div id='Monday 11:30 AM' class='timeRow selected'>11:30 AM</div>
+                    <div id='Monday 11:45 AM' class='timeRow selected'>11:45 AM</div>
+                    <div id='Monday 12:00 PM' class='timeRow selected'>12:00 PM</div>
+                    <div id='Monday 12:15 PM' class='timeRow selected'>12:15 PM</div>
+                    <div id='Monday 12:30 PM' class='timeRow selected'>12:30 PM</div>
+                    <div id='Monday 12:45 PM' class='timeRow selected'>12:45 PM</div>
+                    <div id='Monday 01:00 PM' class='timeRow selected'>01:00 PM</div>
+                    <div id='Monday 01:15 PM' class='timeRow selected'>01:15 PM</div>
+                    <div id='Monday 01:30 PM' class='timeRow selected'>01:30 PM</div>
+                    <div id='Monday 01:45 PM' class='timeRow selected'>01:45 PM</div>
+                    <div id='Monday 02:00 PM' class='timeRow selected'>02:00 PM</div>
+                    <div id='Monday 02:15 PM' class='timeRow selected'>02:15 PM</div>
+                    <div id='Monday 02:30 PM' class='timeRow selected'>02:30 PM</div>
+                    <div id='Monday 02:45 PM' class='timeRow selected'>02:45 PM</div>
+                    <div id='Monday 03:00 PM' class='timeRow selected'>03:00 PM</div>
+                    <div id='Monday 03:15 PM' class='timeRow selected'>03:15 PM</div>
+                    <div id='Monday 03:30 PM' class='timeRow selected'>03:30 PM</div>
+                    <div id='Monday 03:45 PM' class='timeRow selected'>03:45 PM</div>
+                    <div id='Monday 04:00 PM' class='timeRow selected'>04:00 PM</div>
+                    <div id='Monday 04:15 PM' class='timeRow selected'>04:15 PM</div>
+                    <div id='Monday 04:30 PM' class='timeRow selected'>04:30 PM</div>
+                    <div id='Monday 04:45 PM' class='timeRow selected'>04:45 PM</div>
+                    <div id='Monday 05:00 PM' class='timeRow selected'>05:00 PM</div>
+                    <div id='Monday 05:15 PM' class='timeRow selected'>05:15 PM</div>
+                    <div id='Monday 05:30 PM' class='timeRow selected'>05:30 PM</div>
+                    <div id='Monday 05:45 PM' class='timeRow selected'>05:45 PM</div>
+                    <div id='Monday 06:00 PM' class='timeRow selected'>06:00 PM</div>
+                    <div id='Monday 06:15 PM' class='timeRow selected'>06:15 PM</div>
+                    <div id='Monday 06:30 PM' class='timeRow selected'>06:30 PM</div>
+                    <div id='Monday 06:45 PM' class='timeRow selected'>06:45 PM</div>
+                    <div id='Monday 07:00 PM' class='timeRow selected'>07:00 PM</div>
+                    <div id='Monday 07:15 PM' class='timeRow selected'>07:15 PM</div>
+                    <div id='Monday 07:30 PM' class='timeRow selected'>07:30 PM</div>
+                    <div id='Monday 07:45 PM' class='timeRow selected'>07:45 PM</div>
+                    <div id='Monday 08:00 PM' class='timeRow selected'>08:00 PM</div>
+                    <div id='Monday 08:15 PM' class='timeRow selected'>08:15 PM</div>
+                    <div id='Monday 08:30 PM' class='timeRow selected'>08:30 PM</div>
+                    <div id='Monday 08:45 PM' class='timeRow selected'>08:45 PM</div>
+                    <div id='Monday 09:00 PM' class='timeRow selected'>09:00 PM</div>
+                    <div id='Monday 09:15 PM' class='timeRow selected'>09:15 PM</div>
+                    <div id='Monday 09:30 PM' class='timeRow selected'>09:30 PM</div>
+                    <div id='Monday 09:45 PM' class='timeRow selected'>09:45 PM</div>
+                    <div id='Monday 10:00 PM' class='timeRow selected'>10:00 PM</div>
+                    <div id='Monday 10:15 PM' class='timeRow selected'>10:15 PM</div>
+                    <div id='Monday 10:30 PM' class='timeRow selected'>10:30 PM</div>
+                    <div id='Monday 10:45 PM' class='timeRow selected'>10:45 PM</div>
+                    <div id='Monday 11:00 PM' class='timeRow selected'>11:00 PM</div>
+                    <div id='Monday 11:15 PM' class='timeRow selected'>11:15 PM</div>
+                    <div id='Monday 11:30 PM' class='timeRow selected'>11:30 PM</div>
+                </div>
+                <div class='dayCol'>
+                    <div class='dayTitle'>Tue</div>
+                    <div id='Tuesday 12:00 AM' class='timeRow selected'>12:00 AM</div>
+                    <div id='Tuesday 12:15 AM' class='timeRow selected'>12:15 AM</div>
+                    <div id='Tuesday 12:30 AM' class='timeRow selected'>12:30 AM</div>
+                    <div id='Tuesday 12:45 AM' class='timeRow selected'>12:45 AM</div>
+                    <div id='Tuesday 01:00 AM' class='timeRow selected'>01:00 AM</div>
+                    <div id='Tuesday 01:15 AM' class='timeRow selected'>01:15 AM</div>
+                    <div id='Tuesday 01:30 AM' class='timeRow selected'>01:30 AM</div>
+                    <div id='Tuesday 01:45 AM' class='timeRow selected'>01:45 AM</div>
+                    <div id='Tuesday 02:00 AM' class='timeRow selected'>02:00 AM</div>
+                    <div id='Tuesday 02:15 AM' class='timeRow selected'>02:15 AM</div>
+                    <div id='Tuesday 02:30 AM' class='timeRow selected'>02:30 AM</div>
+                    <div id='Tuesday 02:45 AM' class='timeRow selected'>02:45 AM</div>
+                    <div id='Tuesday 03:00 AM' class='timeRow selected'>03:00 AM</div>
+                    <div id='Tuesday 03:15 AM' class='timeRow selected'>03:15 AM</div>
+                    <div id='Tuesday 03:30 AM' class='timeRow selected'>03:30 AM</div>
+                    <div id='Tuesday 03:45 AM' class='timeRow selected'>03:45 AM</div>
+                    <div id='Tuesday 04:00 AM' class='timeRow selected'>04:00 AM</div>
+                    <div id='Tuesday 04:15 AM' class='timeRow selected'>04:15 AM</div>
+                    <div id='Tuesday 04:30 AM' class='timeRow selected'>04:30 AM</div>
+                    <div id='Tuesday 04:45 AM' class='timeRow selected'>04:45 AM</div>
+                    <div id='Tuesday 05:00 AM' class='timeRow selected'>05:00 AM</div>
+                    <div id='Tuesday 05:15 AM' class='timeRow selected'>05:15 AM</div>
+                    <div id='Tuesday 05:30 AM' class='timeRow selected'>05:30 AM</div>
+                    <div id='Tuesday 05:45 AM' class='timeRow selected'>05:45 AM</div>
+                    <div id='Tuesday 06:00 AM' class='timeRow selected'>06:00 AM</div>
+                    <div id='Tuesday 06:15 AM' class='timeRow selected'>06:15 AM</div>
+                    <div id='Tuesday 06:30 AM' class='timeRow selected'>06:30 AM</div>
+                    <div id='Tuesday 06:45 AM' class='timeRow selected'>06:45 AM</div>
+                    <div id='Tuesday 07:00 AM' class='timeRow selected'>07:00 AM</div>
+                    <div id='Tuesday 07:15 AM' class='timeRow selected'>07:15 AM</div>
+                    <div id='Tuesday 07:30 AM' class='timeRow selected'>07:30 AM</div>
+                    <div id='Tuesday 07:45 AM' class='timeRow selected'>07:45 AM</div>
+                    <div id='Tuesday 08:00 AM' class='timeRow selected'>08:00 AM</div>
+                    <div id='Tuesday 08:15 AM' class='timeRow selected'>08:15 AM</div>
+                    <div id='Tuesday 08:30 AM' class='timeRow selected'>08:30 AM</div>
+                    <div id='Tuesday 08:45 AM' class='timeRow selected'>08:45 AM</div>
+                    <div id='Tuesday 09:00 AM' class='timeRow selected'>09:00 AM</div>
+                    <div id='Tuesday 09:15 AM' class='timeRow selected'>09:15 AM</div>
+                    <div id='Tuesday 09:30 AM' class='timeRow selected'>09:30 AM</div>
+                    <div id='Tuesday 09:45 AM' class='timeRow selected'>09:45 AM</div>
+                    <div id='Tuesday 10:00 AM' class='timeRow selected'>10:00 AM</div>
+                    <div id='Tuesday 10:15 AM' class='timeRow selected'>10:15 AM</div>
+                    <div id='Tuesday 10:30 AM' class='timeRow selected'>10:30 AM</div>
+                    <div id='Tuesday 10:45 AM' class='timeRow selected'>10:45 AM</div>
+                    <div id='Tuesday 11:00 AM' class='timeRow selected'>11:00 AM</div>
+                    <div id='Tuesday 11:15 AM' class='timeRow selected'>11:15 AM</div>
+                    <div id='Tuesday 11:30 AM' class='timeRow selected'>11:30 AM</div>
+                    <div id='Tuesday 11:45 AM' class='timeRow selected'>11:45 AM</div>
+                    <div id='Tuesday 12:00 PM' class='timeRow selected'>12:00 PM</div>
+                    <div id='Tuesday 12:15 PM' class='timeRow selected'>12:15 PM</div>
+                    <div id='Tuesday 12:30 PM' class='timeRow selected'>12:30 PM</div>
+                    <div id='Tuesday 12:45 PM' class='timeRow selected'>12:45 PM</div>
+                    <div id='Tuesday 01:00 PM' class='timeRow selected'>01:00 PM</div>
+                    <div id='Tuesday 01:15 PM' class='timeRow selected'>01:15 PM</div>
+                    <div id='Tuesday 01:30 PM' class='timeRow selected'>01:30 PM</div>
+                    <div id='Tuesday 01:45 PM' class='timeRow selected'>01:45 PM</div>
+                    <div id='Tuesday 02:00 PM' class='timeRow selected'>02:00 PM</div>
+                    <div id='Tuesday 02:15 PM' class='timeRow selected'>02:15 PM</div>
+                    <div id='Tuesday 02:30 PM' class='timeRow selected'>02:30 PM</div>
+                    <div id='Tuesday 02:45 PM' class='timeRow selected'>02:45 PM</div>
+                    <div id='Tuesday 03:00 PM' class='timeRow selected'>03:00 PM</div>
+                    <div id='Tuesday 03:15 PM' class='timeRow selected'>03:15 PM</div>
+                    <div id='Tuesday 03:30 PM' class='timeRow selected'>03:30 PM</div>
+                    <div id='Tuesday 03:45 PM' class='timeRow selected'>03:45 PM</div>
+                    <div id='Tuesday 04:00 PM' class='timeRow selected'>04:00 PM</div>
+                    <div id='Tuesday 04:15 PM' class='timeRow selected'>04:15 PM</div>
+                    <div id='Tuesday 04:30 PM' class='timeRow selected'>04:30 PM</div>
+                    <div id='Tuesday 04:45 PM' class='timeRow selected'>04:45 PM</div>
+                    <div id='Tuesday 05:00 PM' class='timeRow selected'>05:00 PM</div>
+                    <div id='Tuesday 05:15 PM' class='timeRow selected'>05:15 PM</div>
+                    <div id='Tuesday 05:30 PM' class='timeRow selected'>05:30 PM</div>
+                    <div id='Tuesday 05:45 PM' class='timeRow selected'>05:45 PM</div>
+                    <div id='Tuesday 06:00 PM' class='timeRow selected'>06:00 PM</div>
+                    <div id='Tuesday 06:15 PM' class='timeRow selected'>06:15 PM</div>
+                    <div id='Tuesday 06:30 PM' class='timeRow selected'>06:30 PM</div>
+                    <div id='Tuesday 06:45 PM' class='timeRow selected'>06:45 PM</div>
+                    <div id='Tuesday 07:00 PM' class='timeRow selected'>07:00 PM</div>
+                    <div id='Tuesday 07:15 PM' class='timeRow selected'>07:15 PM</div>
+                    <div id='Tuesday 07:30 PM' class='timeRow selected'>07:30 PM</div>
+                    <div id='Tuesday 07:45 PM' class='timeRow selected'>07:45 PM</div>
+                    <div id='Tuesday 08:00 PM' class='timeRow selected'>08:00 PM</div>
+                    <div id='Tuesday 08:15 PM' class='timeRow selected'>08:15 PM</div>
+                    <div id='Tuesday 08:30 PM' class='timeRow selected'>08:30 PM</div>
+                    <div id='Tuesday 08:45 PM' class='timeRow selected'>08:45 PM</div>
+                    <div id='Tuesday 09:00 PM' class='timeRow selected'>09:00 PM</div>
+                    <div id='Tuesday 09:15 PM' class='timeRow selected'>09:15 PM</div>
+                    <div id='Tuesday 09:30 PM' class='timeRow selected'>09:30 PM</div>
+                    <div id='Tuesday 09:45 PM' class='timeRow selected'>09:45 PM</div>
+                    <div id='Tuesday 10:00 PM' class='timeRow selected'>10:00 PM</div>
+                    <div id='Tuesday 10:15 PM' class='timeRow selected'>10:15 PM</div>
+                    <div id='Tuesday 10:30 PM' class='timeRow selected'>10:30 PM</div>
+                    <div id='Tuesday 10:45 PM' class='timeRow selected'>10:45 PM</div>
+                    <div id='Tuesday 11:00 PM' class='timeRow selected'>11:00 PM</div>
+                    <div id='Tuesday 11:15 PM' class='timeRow selected'>11:15 PM</div>
+                    <div id='Tuesday 11:30 PM' class='timeRow selected'>11:30 PM</div>
+                </div>
+                <div class='dayCol'>
+                    <div class='dayTitle'>Wed</div>
+                    <div id='Wednesday 12:00 AM' class='timeRow selected'>12:00 AM</div>
+                    <div id='Wednesday 12:15 AM' class='timeRow selected'>12:15 AM</div>
+                    <div id='Wednesday 12:30 AM' class='timeRow selected'>12:30 AM</div>
+                    <div id='Wednesday 12:45 AM' class='timeRow selected'>12:45 AM</div>
+                    <div id='Wednesday 01:00 AM' class='timeRow selected'>01:00 AM</div>
+                    <div id='Wednesday 01:15 AM' class='timeRow selected'>01:15 AM</div>
+                    <div id='Wednesday 01:30 AM' class='timeRow selected'>01:30 AM</div>
+                    <div id='Wednesday 01:45 AM' class='timeRow selected'>01:45 AM</div>
+                    <div id='Wednesday 02:00 AM' class='timeRow selected'>02:00 AM</div>
+                    <div id='Wednesday 02:15 AM' class='timeRow selected'>02:15 AM</div>
+                    <div id='Wednesday 02:30 AM' class='timeRow selected'>02:30 AM</div>
+                    <div id='Wednesday 02:45 AM' class='timeRow selected'>02:45 AM</div>
+                    <div id='Wednesday 03:00 AM' class='timeRow selected'>03:00 AM</div>
+                    <div id='Wednesday 03:15 AM' class='timeRow selected'>03:15 AM</div>
+                    <div id='Wednesday 03:30 AM' class='timeRow selected'>03:30 AM</div>
+                    <div id='Wednesday 03:45 AM' class='timeRow selected'>03:45 AM</div>
+                    <div id='Wednesday 04:00 AM' class='timeRow selected'>04:00 AM</div>
+                    <div id='Wednesday 04:15 AM' class='timeRow selected'>04:15 AM</div>
+                    <div id='Wednesday 04:30 AM' class='timeRow selected'>04:30 AM</div>
+                    <div id='Wednesday 04:45 AM' class='timeRow selected'>04:45 AM</div>
+                    <div id='Wednesday 05:00 AM' class='timeRow selected'>05:00 AM</div>
+                    <div id='Wednesday 05:15 AM' class='timeRow selected'>05:15 AM</div>
+                    <div id='Wednesday 05:30 AM' class='timeRow selected'>05:30 AM</div>
+                    <div id='Wednesday 05:45 AM' class='timeRow selected'>05:45 AM</div>
+                    <div id='Wednesday 06:00 AM' class='timeRow selected'>06:00 AM</div>
+                    <div id='Wednesday 06:15 AM' class='timeRow selected'>06:15 AM</div>
+                    <div id='Wednesday 06:30 AM' class='timeRow selected'>06:30 AM</div>
+                    <div id='Wednesday 06:45 AM' class='timeRow selected'>06:45 AM</div>
+                    <div id='Wednesday 07:00 AM' class='timeRow selected'>07:00 AM</div>
+                    <div id='Wednesday 07:15 AM' class='timeRow selected'>07:15 AM</div>
+                    <div id='Wednesday 07:30 AM' class='timeRow selected'>07:30 AM</div>
+                    <div id='Wednesday 07:45 AM' class='timeRow selected'>07:45 AM</div>
+                    <div id='Wednesday 08:00 AM' class='timeRow selected'>08:00 AM</div>
+                    <div id='Wednesday 08:15 AM' class='timeRow selected'>08:15 AM</div>
+                    <div id='Wednesday 08:30 AM' class='timeRow selected'>08:30 AM</div>
+                    <div id='Wednesday 08:45 AM' class='timeRow selected'>08:45 AM</div>
+                    <div id='Wednesday 09:00 AM' class='timeRow selected'>09:00 AM</div>
+                    <div id='Wednesday 09:15 AM' class='timeRow selected'>09:15 AM</div>
+                    <div id='Wednesday 09:30 AM' class='timeRow selected'>09:30 AM</div>
+                    <div id='Wednesday 09:45 AM' class='timeRow selected'>09:45 AM</div>
+                    <div id='Wednesday 10:00 AM' class='timeRow selected'>10:00 AM</div>
+                    <div id='Wednesday 10:15 AM' class='timeRow selected'>10:15 AM</div>
+                    <div id='Wednesday 10:30 AM' class='timeRow selected'>10:30 AM</div>
+                    <div id='Wednesday 10:45 AM' class='timeRow selected'>10:45 AM</div>
+                    <div id='Wednesday 11:00 AM' class='timeRow selected'>11:00 AM</div>
+                    <div id='Wednesday 11:15 AM' class='timeRow selected'>11:15 AM</div>
+                    <div id='Wednesday 11:30 AM' class='timeRow selected'>11:30 AM</div>
+                    <div id='Wednesday 11:45 AM' class='timeRow selected'>11:45 AM</div>
+                    <div id='Wednesday 12:00 PM' class='timeRow selected'>12:00 PM</div>
+                    <div id='Wednesday 12:15 PM' class='timeRow selected'>12:15 PM</div>
+                    <div id='Wednesday 12:30 PM' class='timeRow selected'>12:30 PM</div>
+                    <div id='Wednesday 12:45 PM' class='timeRow selected'>12:45 PM</div>
+                    <div id='Wednesday 01:00 PM' class='timeRow selected'>01:00 PM</div>
+                    <div id='Wednesday 01:15 PM' class='timeRow selected'>01:15 PM</div>
+                    <div id='Wednesday 01:30 PM' class='timeRow selected'>01:30 PM</div>
+                    <div id='Wednesday 01:45 PM' class='timeRow selected'>01:45 PM</div>
+                    <div id='Wednesday 02:00 PM' class='timeRow selected'>02:00 PM</div>
+                    <div id='Wednesday 02:15 PM' class='timeRow selected'>02:15 PM</div>
+                    <div id='Wednesday 02:30 PM' class='timeRow selected'>02:30 PM</div>
+                    <div id='Wednesday 02:45 PM' class='timeRow selected'>02:45 PM</div>
+                    <div id='Wednesday 03:00 PM' class='timeRow selected'>03:00 PM</div>
+                    <div id='Wednesday 03:15 PM' class='timeRow selected'>03:15 PM</div>
+                    <div id='Wednesday 03:30 PM' class='timeRow selected'>03:30 PM</div>
+                    <div id='Wednesday 03:45 PM' class='timeRow selected'>03:45 PM</div>
+                    <div id='Wednesday 04:00 PM' class='timeRow selected'>04:00 PM</div>
+                    <div id='Wednesday 04:15 PM' class='timeRow selected'>04:15 PM</div>
+                    <div id='Wednesday 04:30 PM' class='timeRow selected'>04:30 PM</div>
+                    <div id='Wednesday 04:45 PM' class='timeRow selected'>04:45 PM</div>
+                    <div id='Wednesday 05:00 PM' class='timeRow selected'>05:00 PM</div>
+                    <div id='Wednesday 05:15 PM' class='timeRow selected'>05:15 PM</div>
+                    <div id='Wednesday 05:30 PM' class='timeRow selected'>05:30 PM</div>
+                    <div id='Wednesday 05:45 PM' class='timeRow selected'>05:45 PM</div>
+                    <div id='Wednesday 06:00 PM' class='timeRow selected'>06:00 PM</div>
+                    <div id='Wednesday 06:15 PM' class='timeRow selected'>06:15 PM</div>
+                    <div id='Wednesday 06:30 PM' class='timeRow selected'>06:30 PM</div>
+                    <div id='Wednesday 06:45 PM' class='timeRow selected'>06:45 PM</div>
+                    <div id='Wednesday 07:00 PM' class='timeRow selected'>07:00 PM</div>
+                    <div id='Wednesday 07:15 PM' class='timeRow selected'>07:15 PM</div>
+                    <div id='Wednesday 07:30 PM' class='timeRow selected'>07:30 PM</div>
+                    <div id='Wednesday 07:45 PM' class='timeRow selected'>07:45 PM</div>
+                    <div id='Wednesday 08:00 PM' class='timeRow selected'>08:00 PM</div>
+                    <div id='Wednesday 08:15 PM' class='timeRow selected'>08:15 PM</div>
+                    <div id='Wednesday 08:30 PM' class='timeRow selected'>08:30 PM</div>
+                    <div id='Wednesday 08:45 PM' class='timeRow selected'>08:45 PM</div>
+                    <div id='Wednesday 09:00 PM' class='timeRow selected'>09:00 PM</div>
+                    <div id='Wednesday 09:15 PM' class='timeRow selected'>09:15 PM</div>
+                    <div id='Wednesday 09:30 PM' class='timeRow selected'>09:30 PM</div>
+                    <div id='Wednesday 09:45 PM' class='timeRow selected'>09:45 PM</div>
+                    <div id='Wednesday 10:00 PM' class='timeRow selected'>10:00 PM</div>
+                    <div id='Wednesday 10:15 PM' class='timeRow selected'>10:15 PM</div>
+                    <div id='Wednesday 10:30 PM' class='timeRow selected'>10:30 PM</div>
+                    <div id='Wednesday 10:45 PM' class='timeRow selected'>10:45 PM</div>
+                    <div id='Wednesday 11:00 PM' class='timeRow selected'>11:00 PM</div>
+                    <div id='Wednesday 11:15 PM' class='timeRow selected'>11:15 PM</div>
+                    <div id='Wednesday 11:30 PM' class='timeRow selected'>11:30 PM</div>
+                </div>
+                <div class='dayCol'>
+                    <div class='dayTitle'>Thu</div>
+                    <div id='Thursday 12:00 AM' class='timeRow selected'>12:00 AM</div>
+                    <div id='Thursday 12:15 AM' class='timeRow selected'>12:15 AM</div>
+                    <div id='Thursday 12:30 AM' class='timeRow selected'>12:30 AM</div>
+                    <div id='Thursday 12:45 AM' class='timeRow selected'>12:45 AM</div>
+                    <div id='Thursday 01:00 AM' class='timeRow selected'>01:00 AM</div>
+                    <div id='Thursday 01:15 AM' class='timeRow selected'>01:15 AM</div>
+                    <div id='Thursday 01:30 AM' class='timeRow selected'>01:30 AM</div>
+                    <div id='Thursday 01:45 AM' class='timeRow selected'>01:45 AM</div>
+                    <div id='Thursday 02:00 AM' class='timeRow selected'>02:00 AM</div>
+                    <div id='Thursday 02:15 AM' class='timeRow selected'>02:15 AM</div>
+                    <div id='Thursday 02:30 AM' class='timeRow selected'>02:30 AM</div>
+                    <div id='Thursday 02:45 AM' class='timeRow selected'>02:45 AM</div>
+                    <div id='Thursday 03:00 AM' class='timeRow selected'>03:00 AM</div>
+                    <div id='Thursday 03:15 AM' class='timeRow selected'>03:15 AM</div>
+                    <div id='Thursday 03:30 AM' class='timeRow selected'>03:30 AM</div>
+                    <div id='Thursday 03:45 AM' class='timeRow selected'>03:45 AM</div>
+                    <div id='Thursday 04:00 AM' class='timeRow selected'>04:00 AM</div>
+                    <div id='Thursday 04:15 AM' class='timeRow selected'>04:15 AM</div>
+                    <div id='Thursday 04:30 AM' class='timeRow selected'>04:30 AM</div>
+                    <div id='Thursday 04:45 AM' class='timeRow selected'>04:45 AM</div>
+                    <div id='Thursday 05:00 AM' class='timeRow selected'>05:00 AM</div>
+                    <div id='Thursday 05:15 AM' class='timeRow selected'>05:15 AM</div>
+                    <div id='Thursday 05:30 AM' class='timeRow selected'>05:30 AM</div>
+                    <div id='Thursday 05:45 AM' class='timeRow selected'>05:45 AM</div>
+                    <div id='Thursday 06:00 AM' class='timeRow selected'>06:00 AM</div>
+                    <div id='Thursday 06:15 AM' class='timeRow selected'>06:15 AM</div>
+                    <div id='Thursday 06:30 AM' class='timeRow selected'>06:30 AM</div>
+                    <div id='Thursday 06:45 AM' class='timeRow selected'>06:45 AM</div>
+                    <div id='Thursday 07:00 AM' class='timeRow selected'>07:00 AM</div>
+                    <div id='Thursday 07:15 AM' class='timeRow selected'>07:15 AM</div>
+                    <div id='Thursday 07:30 AM' class='timeRow selected'>07:30 AM</div>
+                    <div id='Thursday 07:45 AM' class='timeRow selected'>07:45 AM</div>
+                    <div id='Thursday 08:00 AM' class='timeRow selected'>08:00 AM</div>
+                    <div id='Thursday 08:15 AM' class='timeRow selected'>08:15 AM</div>
+                    <div id='Thursday 08:30 AM' class='timeRow selected'>08:30 AM</div>
+                    <div id='Thursday 08:45 AM' class='timeRow selected'>08:45 AM</div>
+                    <div id='Thursday 09:00 AM' class='timeRow selected'>09:00 AM</div>
+                    <div id='Thursday 09:15 AM' class='timeRow selected'>09:15 AM</div>
+                    <div id='Thursday 09:30 AM' class='timeRow selected'>09:30 AM</div>
+                    <div id='Thursday 09:45 AM' class='timeRow selected'>09:45 AM</div>
+                    <div id='Thursday 10:00 AM' class='timeRow selected'>10:00 AM</div>
+                    <div id='Thursday 10:15 AM' class='timeRow selected'>10:15 AM</div>
+                    <div id='Thursday 10:30 AM' class='timeRow selected'>10:30 AM</div>
+                    <div id='Thursday 10:45 AM' class='timeRow selected'>10:45 AM</div>
+                    <div id='Thursday 11:00 AM' class='timeRow selected'>11:00 AM</div>
+                    <div id='Thursday 11:15 AM' class='timeRow selected'>11:15 AM</div>
+                    <div id='Thursday 11:30 AM' class='timeRow selected'>11:30 AM</div>
+                    <div id='Thursday 11:45 AM' class='timeRow selected'>11:45 AM</div>
+                    <div id='Thursday 12:00 PM' class='timeRow selected'>12:00 PM</div>
+                    <div id='Thursday 12:15 PM' class='timeRow selected'>12:15 PM</div>
+                    <div id='Thursday 12:30 PM' class='timeRow selected'>12:30 PM</div>
+                    <div id='Thursday 12:45 PM' class='timeRow selected'>12:45 PM</div>
+                    <div id='Thursday 01:00 PM' class='timeRow selected'>01:00 PM</div>
+                    <div id='Thursday 01:15 PM' class='timeRow selected'>01:15 PM</div>
+                    <div id='Thursday 01:30 PM' class='timeRow selected'>01:30 PM</div>
+                    <div id='Thursday 01:45 PM' class='timeRow selected'>01:45 PM</div>
+                    <div id='Thursday 02:00 PM' class='timeRow selected'>02:00 PM</div>
+                    <div id='Thursday 02:15 PM' class='timeRow selected'>02:15 PM</div>
+                    <div id='Thursday 02:30 PM' class='timeRow selected'>02:30 PM</div>
+                    <div id='Thursday 02:45 PM' class='timeRow selected'>02:45 PM</div>
+                    <div id='Thursday 03:00 PM' class='timeRow selected'>03:00 PM</div>
+                    <div id='Thursday 03:15 PM' class='timeRow selected'>03:15 PM</div>
+                    <div id='Thursday 03:30 PM' class='timeRow selected'>03:30 PM</div>
+                    <div id='Thursday 03:45 PM' class='timeRow selected'>03:45 PM</div>
+                    <div id='Thursday 04:00 PM' class='timeRow selected'>04:00 PM</div>
+                    <div id='Thursday 04:15 PM' class='timeRow selected'>04:15 PM</div>
+                    <div id='Thursday 04:30 PM' class='timeRow selected'>04:30 PM</div>
+                    <div id='Thursday 04:45 PM' class='timeRow selected'>04:45 PM</div>
+                    <div id='Thursday 05:00 PM' class='timeRow selected'>05:00 PM</div>
+                    <div id='Thursday 05:15 PM' class='timeRow selected'>05:15 PM</div>
+                    <div id='Thursday 05:30 PM' class='timeRow selected'>05:30 PM</div>
+                    <div id='Thursday 05:45 PM' class='timeRow selected'>05:45 PM</div>
+                    <div id='Thursday 06:00 PM' class='timeRow selected'>06:00 PM</div>
+                    <div id='Thursday 06:15 PM' class='timeRow selected'>06:15 PM</div>
+                    <div id='Thursday 06:30 PM' class='timeRow selected'>06:30 PM</div>
+                    <div id='Thursday 06:45 PM' class='timeRow selected'>06:45 PM</div>
+                    <div id='Thursday 07:00 PM' class='timeRow selected'>07:00 PM</div>
+                    <div id='Thursday 07:15 PM' class='timeRow selected'>07:15 PM</div>
+                    <div id='Thursday 07:30 PM' class='timeRow selected'>07:30 PM</div>
+                    <div id='Thursday 07:45 PM' class='timeRow selected'>07:45 PM</div>
+                    <div id='Thursday 08:00 PM' class='timeRow selected'>08:00 PM</div>
+                    <div id='Thursday 08:15 PM' class='timeRow selected'>08:15 PM</div>
+                    <div id='Thursday 08:30 PM' class='timeRow selected'>08:30 PM</div>
+                    <div id='Thursday 08:45 PM' class='timeRow selected'>08:45 PM</div>
+                    <div id='Thursday 09:00 PM' class='timeRow selected'>09:00 PM</div>
+                    <div id='Thursday 09:15 PM' class='timeRow selected'>09:15 PM</div>
+                    <div id='Thursday 09:30 PM' class='timeRow selected'>09:30 PM</div>
+                    <div id='Thursday 09:45 PM' class='timeRow selected'>09:45 PM</div>
+                    <div id='Thursday 10:00 PM' class='timeRow selected'>10:00 PM</div>
+                    <div id='Thursday 10:15 PM' class='timeRow selected'>10:15 PM</div>
+                    <div id='Thursday 10:30 PM' class='timeRow selected'>10:30 PM</div>
+                    <div id='Thursday 10:45 PM' class='timeRow selected'>10:45 PM</div>
+                    <div id='Thursday 11:00 PM' class='timeRow selected'>11:00 PM</div>
+                    <div id='Thursday 11:15 PM' class='timeRow selected'>11:15 PM</div>
+                    <div id='Thursday 11:30 PM' class='timeRow selected'>11:30 PM</div>
+                </div>
+                <div class='dayCol'>
+                    <div class='dayTitle'>Fri</div>
+                    <div id='Friday 12:00 AM' class='timeRow selected'>12:00 AM</div>
+                    <div id='Friday 12:15 AM' class='timeRow selected'>12:15 AM</div>
+                    <div id='Friday 12:30 AM' class='timeRow selected'>12:30 AM</div>
+                    <div id='Friday 12:45 AM' class='timeRow selected'>12:45 AM</div>
+                    <div id='Friday 01:00 AM' class='timeRow selected'>01:00 AM</div>
+                    <div id='Friday 01:15 AM' class='timeRow selected'>01:15 AM</div>
+                    <div id='Friday 01:30 AM' class='timeRow selected'>01:30 AM</div>
+                    <div id='Friday 01:45 AM' class='timeRow selected'>01:45 AM</div>
+                    <div id='Friday 02:00 AM' class='timeRow selected'>02:00 AM</div>
+                    <div id='Friday 02:15 AM' class='timeRow selected'>02:15 AM</div>
+                    <div id='Friday 02:30 AM' class='timeRow selected'>02:30 AM</div>
+                    <div id='Friday 02:45 AM' class='timeRow selected'>02:45 AM</div>
+                    <div id='Friday 03:00 AM' class='timeRow selected'>03:00 AM</div>
+                    <div id='Friday 03:15 AM' class='timeRow selected'>03:15 AM</div>
+                    <div id='Friday 03:30 AM' class='timeRow selected'>03:30 AM</div>
+                    <div id='Friday 03:45 AM' class='timeRow selected'>03:45 AM</div>
+                    <div id='Friday 04:00 AM' class='timeRow selected'>04:00 AM</div>
+                    <div id='Friday 04:15 AM' class='timeRow selected'>04:15 AM</div>
+                    <div id='Friday 04:30 AM' class='timeRow selected'>04:30 AM</div>
+                    <div id='Friday 04:45 AM' class='timeRow selected'>04:45 AM</div>
+                    <div id='Friday 05:00 AM' class='timeRow selected'>05:00 AM</div>
+                    <div id='Friday 05:15 AM' class='timeRow selected'>05:15 AM</div>
+                    <div id='Friday 05:30 AM' class='timeRow selected'>05:30 AM</div>
+                    <div id='Friday 05:45 AM' class='timeRow selected'>05:45 AM</div>
+                    <div id='Friday 06:00 AM' class='timeRow selected'>06:00 AM</div>
+                    <div id='Friday 06:15 AM' class='timeRow selected'>06:15 AM</div>
+                    <div id='Friday 06:30 AM' class='timeRow selected'>06:30 AM</div>
+                    <div id='Friday 06:45 AM' class='timeRow selected'>06:45 AM</div>
+                    <div id='Friday 07:00 AM' class='timeRow selected'>07:00 AM</div>
+                    <div id='Friday 07:15 AM' class='timeRow selected'>07:15 AM</div>
+                    <div id='Friday 07:30 AM' class='timeRow selected'>07:30 AM</div>
+                    <div id='Friday 07:45 AM' class='timeRow selected'>07:45 AM</div>
+                    <div id='Friday 08:00 AM' class='timeRow selected'>08:00 AM</div>
+                    <div id='Friday 08:15 AM' class='timeRow selected'>08:15 AM</div>
+                    <div id='Friday 08:30 AM' class='timeRow selected'>08:30 AM</div>
+                    <div id='Friday 08:45 AM' class='timeRow selected'>08:45 AM</div>
+                    <div id='Friday 09:00 AM' class='timeRow selected'>09:00 AM</div>
+                    <div id='Friday 09:15 AM' class='timeRow selected'>09:15 AM</div>
+                    <div id='Friday 09:30 AM' class='timeRow selected'>09:30 AM</div>
+                    <div id='Friday 09:45 AM' class='timeRow selected'>09:45 AM</div>
+                    <div id='Friday 10:00 AM' class='timeRow selected'>10:00 AM</div>
+                    <div id='Friday 10:15 AM' class='timeRow selected'>10:15 AM</div>
+                    <div id='Friday 10:30 AM' class='timeRow selected'>10:30 AM</div>
+                    <div id='Friday 10:45 AM' class='timeRow selected'>10:45 AM</div>
+                    <div id='Friday 11:00 AM' class='timeRow selected'>11:00 AM</div>
+                    <div id='Friday 11:15 AM' class='timeRow selected'>11:15 AM</div>
+                    <div id='Friday 11:30 AM' class='timeRow selected'>11:30 AM</div>
+                    <div id='Friday 11:45 AM' class='timeRow selected'>11:45 AM</div>
+                    <div id='Friday 12:00 PM' class='timeRow selected'>12:00 PM</div>
+                    <div id='Friday 12:15 PM' class='timeRow selected'>12:15 PM</div>
+                    <div id='Friday 12:30 PM' class='timeRow selected'>12:30 PM</div>
+                    <div id='Friday 12:45 PM' class='timeRow selected'>12:45 PM</div>
+                    <div id='Friday 01:00 PM' class='timeRow selected'>01:00 PM</div>
+                    <div id='Friday 01:15 PM' class='timeRow selected'>01:15 PM</div>
+                    <div id='Friday 01:30 PM' class='timeRow selected'>01:30 PM</div>
+                    <div id='Friday 01:45 PM' class='timeRow selected'>01:45 PM</div>
+                    <div id='Friday 02:00 PM' class='timeRow selected'>02:00 PM</div>
+                    <div id='Friday 02:15 PM' class='timeRow selected'>02:15 PM</div>
+                    <div id='Friday 02:30 PM' class='timeRow selected'>02:30 PM</div>
+                    <div id='Friday 02:45 PM' class='timeRow selected'>02:45 PM</div>
+                    <div id='Friday 03:00 PM' class='timeRow selected'>03:00 PM</div>
+                    <div id='Friday 03:15 PM' class='timeRow selected'>03:15 PM</div>
+                    <div id='Friday 03:30 PM' class='timeRow selected'>03:30 PM</div>
+                    <div id='Friday 03:45 PM' class='timeRow selected'>03:45 PM</div>
+                    <div id='Friday 04:00 PM' class='timeRow selected'>04:00 PM</div>
+                    <div id='Friday 04:15 PM' class='timeRow selected'>04:15 PM</div>
+                    <div id='Friday 04:30 PM' class='timeRow selected'>04:30 PM</div>
+                    <div id='Friday 04:45 PM' class='timeRow selected'>04:45 PM</div>
+                    <div id='Friday 05:00 PM' class='timeRow selected'>05:00 PM</div>
+                    <div id='Friday 05:15 PM' class='timeRow selected'>05:15 PM</div>
+                    <div id='Friday 05:30 PM' class='timeRow selected'>05:30 PM</div>
+                    <div id='Friday 05:45 PM' class='timeRow selected'>05:45 PM</div>
+                    <div id='Friday 06:00 PM' class='timeRow selected'>06:00 PM</div>
+                    <div id='Friday 06:15 PM' class='timeRow selected'>06:15 PM</div>
+                    <div id='Friday 06:30 PM' class='timeRow selected'>06:30 PM</div>
+                    <div id='Friday 06:45 PM' class='timeRow selected'>06:45 PM</div>
+                    <div id='Friday 07:00 PM' class='timeRow selected'>07:00 PM</div>
+                    <div id='Friday 07:15 PM' class='timeRow selected'>07:15 PM</div>
+                    <div id='Friday 07:30 PM' class='timeRow selected'>07:30 PM</div>
+                    <div id='Friday 07:45 PM' class='timeRow selected'>07:45 PM</div>
+                    <div id='Friday 08:00 PM' class='timeRow selected'>08:00 PM</div>
+                    <div id='Friday 08:15 PM' class='timeRow selected'>08:15 PM</div>
+                    <div id='Friday 08:30 PM' class='timeRow selected'>08:30 PM</div>
+                    <div id='Friday 08:45 PM' class='timeRow selected'>08:45 PM</div>
+                    <div id='Friday 09:00 PM' class='timeRow selected'>09:00 PM</div>
+                    <div id='Friday 09:15 PM' class='timeRow selected'>09:15 PM</div>
+                    <div id='Friday 09:30 PM' class='timeRow selected'>09:30 PM</div>
+                    <div id='Friday 09:45 PM' class='timeRow selected'>09:45 PM</div>
+                    <div id='Friday 10:00 PM' class='timeRow selected'>10:00 PM</div>
+                    <div id='Friday 10:15 PM' class='timeRow selected'>10:15 PM</div>
+                    <div id='Friday 10:30 PM' class='timeRow selected'>10:30 PM</div>
+                    <div id='Friday 10:45 PM' class='timeRow selected'>10:45 PM</div>
+                    <div id='Friday 11:00 PM' class='timeRow selected'>11:00 PM</div>
+                    <div id='Friday 11:15 PM' class='timeRow selected'>11:15 PM</div>
+                    <div id='Friday 11:30 PM' class='timeRow selected'>11:30 PM</div>
+                </div>
+                <div class='dayCol'>
+                    <div class='dayTitle'>Sat</div>
+                    <div id='Saturday 12:00 AM' class='timeRow selected'>12:00 AM</div>
+                    <div id='Saturday 12:15 AM' class='timeRow selected'>12:15 AM</div>
+                    <div id='Saturday 12:30 AM' class='timeRow selected'>12:30 AM</div>
+                    <div id='Saturday 12:45 AM' class='timeRow selected'>12:45 AM</div>
+                    <div id='Saturday 01:00 AM' class='timeRow selected'>01:00 AM</div>
+                    <div id='Saturday 01:15 AM' class='timeRow selected'>01:15 AM</div>
+                    <div id='Saturday 01:30 AM' class='timeRow selected'>01:30 AM</div>
+                    <div id='Saturday 01:45 AM' class='timeRow selected'>01:45 AM</div>
+                    <div id='Saturday 02:00 AM' class='timeRow selected'>02:00 AM</div>
+                    <div id='Saturday 02:15 AM' class='timeRow selected'>02:15 AM</div>
+                    <div id='Saturday 02:30 AM' class='timeRow selected'>02:30 AM</div>
+                    <div id='Saturday 02:45 AM' class='timeRow selected'>02:45 AM</div>
+                    <div id='Saturday 03:00 AM' class='timeRow selected'>03:00 AM</div>
+                    <div id='Saturday 03:15 AM' class='timeRow selected'>03:15 AM</div>
+                    <div id='Saturday 03:30 AM' class='timeRow selected'>03:30 AM</div>
+                    <div id='Saturday 03:45 AM' class='timeRow selected'>03:45 AM</div>
+                    <div id='Saturday 04:00 AM' class='timeRow selected'>04:00 AM</div>
+                    <div id='Saturday 04:15 AM' class='timeRow selected'>04:15 AM</div>
+                    <div id='Saturday 04:30 AM' class='timeRow selected'>04:30 AM</div>
+                    <div id='Saturday 04:45 AM' class='timeRow selected'>04:45 AM</div>
+                    <div id='Saturday 05:00 AM' class='timeRow selected'>05:00 AM</div>
+                    <div id='Saturday 05:15 AM' class='timeRow selected'>05:15 AM</div>
+                    <div id='Saturday 05:30 AM' class='timeRow selected'>05:30 AM</div>
+                    <div id='Saturday 05:45 AM' class='timeRow selected'>05:45 AM</div>
+                    <div id='Saturday 06:00 AM' class='timeRow selected'>06:00 AM</div>
+                    <div id='Saturday 06:15 AM' class='timeRow selected'>06:15 AM</div>
+                    <div id='Saturday 06:30 AM' class='timeRow selected'>06:30 AM</div>
+                    <div id='Saturday 06:45 AM' class='timeRow selected'>06:45 AM</div>
+                    <div id='Saturday 07:00 AM' class='timeRow selected'>07:00 AM</div>
+                    <div id='Saturday 07:15 AM' class='timeRow selected'>07:15 AM</div>
+                    <div id='Saturday 07:30 AM' class='timeRow selected'>07:30 AM</div>
+                    <div id='Saturday 07:45 AM' class='timeRow selected'>07:45 AM</div>
+                    <div id='Saturday 08:00 AM' class='timeRow selected'>08:00 AM</div>
+                    <div id='Saturday 08:15 AM' class='timeRow selected'>08:15 AM</div>
+                    <div id='Saturday 08:30 AM' class='timeRow selected'>08:30 AM</div>
+                    <div id='Saturday 08:45 AM' class='timeRow selected'>08:45 AM</div>
+                    <div id='Saturday 09:00 AM' class='timeRow selected'>09:00 AM</div>
+                    <div id='Saturday 09:15 AM' class='timeRow selected'>09:15 AM</div>
+                    <div id='Saturday 09:30 AM' class='timeRow selected'>09:30 AM</div>
+                    <div id='Saturday 09:45 AM' class='timeRow selected'>09:45 AM</div>
+                    <div id='Saturday 10:00 AM' class='timeRow selected'>10:00 AM</div>
+                    <div id='Saturday 10:15 AM' class='timeRow selected'>10:15 AM</div>
+                    <div id='Saturday 10:30 AM' class='timeRow selected'>10:30 AM</div>
+                    <div id='Saturday 10:45 AM' class='timeRow selected'>10:45 AM</div>
+                    <div id='Saturday 11:00 AM' class='timeRow selected'>11:00 AM</div>
+                    <div id='Saturday 11:15 AM' class='timeRow selected'>11:15 AM</div>
+                    <div id='Saturday 11:30 AM' class='timeRow selected'>11:30 AM</div>
+                    <div id='Saturday 11:45 AM' class='timeRow selected'>11:45 AM</div>
+                    <div id='Saturday 12:00 PM' class='timeRow selected'>12:00 PM</div>
+                    <div id='Saturday 12:15 PM' class='timeRow selected'>12:15 PM</div>
+                    <div id='Saturday 12:30 PM' class='timeRow selected'>12:30 PM</div>
+                    <div id='Saturday 12:45 PM' class='timeRow selected'>12:45 PM</div>
+                    <div id='Saturday 01:00 PM' class='timeRow selected'>01:00 PM</div>
+                    <div id='Saturday 01:15 PM' class='timeRow selected'>01:15 PM</div>
+                    <div id='Saturday 01:30 PM' class='timeRow selected'>01:30 PM</div>
+                    <div id='Saturday 01:45 PM' class='timeRow selected'>01:45 PM</div>
+                    <div id='Saturday 02:00 PM' class='timeRow selected'>02:00 PM</div>
+                    <div id='Saturday 02:15 PM' class='timeRow selected'>02:15 PM</div>
+                    <div id='Saturday 02:30 PM' class='timeRow selected'>02:30 PM</div>
+                    <div id='Saturday 02:45 PM' class='timeRow selected'>02:45 PM</div>
+                    <div id='Saturday 03:00 PM' class='timeRow selected'>03:00 PM</div>
+                    <div id='Saturday 03:15 PM' class='timeRow selected'>03:15 PM</div>
+                    <div id='Saturday 03:30 PM' class='timeRow selected'>03:30 PM</div>
+                    <div id='Saturday 03:45 PM' class='timeRow selected'>03:45 PM</div>
+                    <div id='Saturday 04:00 PM' class='timeRow selected'>04:00 PM</div>
+                    <div id='Saturday 04:15 PM' class='timeRow selected'>04:15 PM</div>
+                    <div id='Saturday 04:30 PM' class='timeRow selected'>04:30 PM</div>
+                    <div id='Saturday 04:45 PM' class='timeRow selected'>04:45 PM</div>
+                    <div id='Saturday 05:00 PM' class='timeRow selected'>05:00 PM</div>
+                    <div id='Saturday 05:15 PM' class='timeRow selected'>05:15 PM</div>
+                    <div id='Saturday 05:30 PM' class='timeRow selected'>05:30 PM</div>
+                    <div id='Saturday 05:45 PM' class='timeRow selected'>05:45 PM</div>
+                    <div id='Saturday 06:00 PM' class='timeRow selected'>06:00 PM</div>
+                    <div id='Saturday 06:15 PM' class='timeRow selected'>06:15 PM</div>
+                    <div id='Saturday 06:30 PM' class='timeRow selected'>06:30 PM</div>
+                    <div id='Saturday 06:45 PM' class='timeRow selected'>06:45 PM</div>
+                    <div id='Saturday 07:00 PM' class='timeRow selected'>07:00 PM</div>
+                    <div id='Saturday 07:15 PM' class='timeRow selected'>07:15 PM</div>
+                    <div id='Saturday 07:30 PM' class='timeRow selected'>07:30 PM</div>
+                    <div id='Saturday 07:45 PM' class='timeRow selected'>07:45 PM</div>
+                    <div id='Saturday 08:00 PM' class='timeRow selected'>08:00 PM</div>
+                    <div id='Saturday 08:15 PM' class='timeRow selected'>08:15 PM</div>
+                    <div id='Saturday 08:30 PM' class='timeRow selected'>08:30 PM</div>
+                    <div id='Saturday 08:45 PM' class='timeRow selected'>08:45 PM</div>
+                    <div id='Saturday 09:00 PM' class='timeRow selected'>09:00 PM</div>
+                    <div id='Saturday 09:15 PM' class='timeRow selected'>09:15 PM</div>
+                    <div id='Saturday 09:30 PM' class='timeRow selected'>09:30 PM</div>
+                    <div id='Saturday 09:45 PM' class='timeRow selected'>09:45 PM</div>
+                    <div id='Saturday 10:00 PM' class='timeRow selected'>10:00 PM</div>
+                    <div id='Saturday 10:15 PM' class='timeRow selected'>10:15 PM</div>
+                    <div id='Saturday 10:30 PM' class='timeRow selected'>10:30 PM</div>
+                    <div id='Saturday 10:45 PM' class='timeRow selected'>10:45 PM</div>
+                    <div id='Saturday 11:00 PM' class='timeRow selected'>11:00 PM</div>
+                    <div id='Saturday 11:15 PM' class='timeRow selected'>11:15 PM</div>
+                    <div id='Saturday 11:30 PM' class='timeRow selected'>11:30 PM</div>
+                </div>
+            </div>
+            <form id='pSchedule' name='schedule' method='POST' action='{{ url_for("setPSchedule") }}'>
+                {{ psform.hidden_tag() }}
+                <button data-form='pSchedule' data-input='pAvailability' data-target='personalScheduleSelect' type='submit' class='eSubmit button'>Set Schedule</button>
+            </form>
+        </div>
+        <div class='sidebar'>
+            <div class='sidebarContent'>
+                <div class='account'>
+                    <i class='faButton fas fa-user-circle'></i>
+                    <div class='uname'>{% if user.is_authenticated %}{{ user.username }}{% endif %}</div>
+                    <div class='close faButton'><i class="fas fa-times"></i></div>
+                </div>
+                {% if user.is_authenticated %}
+                    <a class='pageTurn button' data-target='psPage'>My Schedule</a>
+                    <h3>Events</h3>
+                    {% for event in userEvents%}
+                        <a class='eventLink sl' href="{{ url_for('event', eventId=event.event_id) }}">{{event.name}}</a>
+                    {% endfor %}
+                    <a class='pageTurn button' data-target='createEventPage'>Create a New Event</a>
+                    <a class='button' href="{{ url_for('logout') }}">Log Out</a>
+                {% else %}
+                    <h2>Your Account</h2>
+                    <form name='loginForm' method='POST' action='{{ url_for("login") }}'>
+                        {{ lform.hidden_tag() }}
+                        <div class='line'>{{ lform.username.label }}{{ lform.username() }}</div><br>
+                        <div class='line'>{{ lform.password.label }}{{ lform.password() }}</div><br>
+                        <div class='line'>{{ lform.remember.label }}<label class='check'>{{ lform.remember() }}<span class='checkmark'></span></label></div><br>
+                        <button class='button fSubmit'>Login</button>
+                    </form>
+                    <a id='pwReset' class='sl'>Forgot Password</a>
+                    <div id='pwrDiv' style='display:none'>
+                        <form method='POST' action='{{ url_for("reset_request") }}'>
+                            {{ pform.hidden_tag() }}
+                            <div class='line'>{{ pform.email.label }}{{ pform.email() }}</div><br>
+                            <button class='button fSubmit'>Request Reset</button>
+                        </form>
+                    </div>
+                    <h4>OR</h4>
+                    <form name='signupForm' method='POST' action='{{ url_for("signup") }}'>
+                        {{ sform.hidden_tag() }}
+                        <div class='line'>{{ sform.email.label }}{{ sform.email() }}</div><br>
+                        <div class='line'>{{ sform.username.label }}{{ sform.username() }}</div><br>
+                        <div class='line'>{{ sform.password.label }}{{ sform.password() }}</div><br>
+                        <div class='line'>{{ sform.password2.label }}{{ sform.password2() }}</div><br>
+                        {{ sform.recaptcha }}
+                        <button class='button fSubmit'>Sign Up</button>
+                    </form>
+                {% endif %}
+            </div>
+            <div class='sidebarFlash'>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages%}
+                            {% if message|first == '~' %}
+                                <div>{{ message|replace('~', '') }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+            <div class='sidebarError'>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages%}
+                            {% if message|first == '`' %}
+                                <div>{{ message|replace('`', '') }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </main>
+    {% include 'includes/footer.html' %}
+</body>
+</html>
