@@ -42,3 +42,4 @@ Use these two commands to migrate the existing database to one with updated mode
 **Seungmin Kuk**, User Authentication
 
 **Denis Lomakin**, UX/UI
+# meetup
